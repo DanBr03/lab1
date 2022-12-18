@@ -1,0 +1,568 @@
+Файл Garage.h
+#pragma once
+#include "Keeper.h"
+// базовый класс
+class Garage {
+protected:
+	string stamp;
+	string model;
+public:
+	Garage() { cout << "The class constructor volunteered Garage" << endl; }
+	virtual ~Garage() { cout << "The class destructor was called Garage" << endl;}
+};
+
+
+Файл Keeper.h
+#pragma once
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <exception>
+// массив наших объектов
+using namespace std;
+template <class T>
+class Keeper {
+
+	T* ptr_mas;
+	int size;
+public:
+	Keeper() { size = 0; ptr_mas = nullptr; cout << "Object  Keeper created" << endl; };
+	~Keeper() { delete[] ptr_mas; cout << "Object Keeper deleted" << endl; };
+
+	void save(string); // запись в файл
+	void read(string); //чтение из файла
+	void add(); //добавить в массив наш объект
+	void del(int index); //удалить из массива 
+	void print(); //вывод на экран все элементы
+	//void redact(int index);
+};
+
+template<class T>
+void Keeper<T>::save(string s) {
+	ofstream fout(s, ios::out);
+
+	try {
+		if (size == 0)
+			throw exception("No data to save");
+
+		fout << size << endl;
+		for (int i = 0; i < size; i++) {
+			fout << ptr_mas[i] << endl;
+		}
+		cout << "File Successfully save" << endl;
+	}
+	catch (exception& ex) {
+		cout << ex.what() << endl;
+	}
+	fout.close();
+}
+
+template<class T>
+void Keeper<T>::read(string s) {
+	ifstream fin(s, ios::in);
+
+	fin >> size;
+
+	if (ptr_mas != nullptr)
+		delete[] ptr_mas;
+
+	ptr_mas = new T[size];
+
+	for (int i = 0; i < size; i++) {
+		fin >> ptr_mas[i];
+	}
+
+	cout << "File Successfully read" << endl;
+	fin.close();
+}
+
+template<class T>
+void Keeper<T>::add() {
+	T* tmp = new T[size + 1]; //увеличение списка на один
+	for (int i = 0; i < size; i++) {
+		tmp[i] = ptr_mas[i]; //перезапись тех, что было
+	}
+	delete[] ptr_mas;
+	cin >> tmp[size];
+	ptr_mas = tmp;
+	size++;
+}
+
+template<class T>
+void Keeper<T>::del(int index) {
+	if (size == 0)
+		cout << "Nothing delete." << endl;
+	else {
+
+		try {
+
+			if (index > size - 1 || index < 0)
+				throw exception("It is not possible to delete by the specified index.");
+		}
+		catch (exception& ex) {
+			while (index < 0 || index > size - 1) {
+				cout << ex.what() << endl;
+				cout << "Enter the index again(start 0):" << endl;
+				cin >> index;
+			}
+		}
+
+		for (int i = 0; i < size; i++) {
+			cout << ptr_mas[i] << endl;
+		}
+
+		T* tmp = new T[size - 1];
+		int j = 0;
+		for (int i = 0; i < size; i++) {
+			if (i != index)
+				tmp[j++] = ptr_mas[i];
+		}
+		delete[] ptr_mas;
+		ptr_mas = tmp;
+		size--;
+		cout << "The object was successfully deleted." << endl;	
+	}
+}
+
+template<class T>
+void Keeper<T>::print() {
+
+	if (size == 0)
+		cout << "There is nothing to output" << endl;
+	else
+		for (int i = 0; i < size; i++) {
+			cout << ptr_mas[i] << endl;
+		}
+}
+
+
+Файл Menu.h
+#pragma once
+#include "Keeper.h"
+
+template <typename T>
+void Menu(T& obj, string s) {
+
+	int menu;
+	int index;
+	int flag = 1;
+	while (flag) {
+		system("cls");
+		cout << "1 -> Add a transport" << endl;
+		cout << "2 -> Delete transport" << endl;
+		cout << "3 -> Read from the file" << endl;
+		cout << "4 -> Save in file" << endl;
+		cout << "5 -> Print all info" << endl;
+		cout << "6 -> Exit" << endl;
+
+		cout << "Input num: ";
+		cin >> menu;
+		switch (menu) {
+		case 1: obj.add(); break;
+
+		case 2: obj.print(); cout << "Input smth: "; cin >> index; obj.del(index); system("pause"); break;
+		case 3: obj.read(s); system("pause"); break;
+		case 4: obj.save(s); system("pause"); break;
+		case 5: obj.print(); system("pause"); break;
+		case 6: flag = 0; break;
+		//case 7: obj.redact(index); system("pause"); break;
+		default: cout << "Error" << endl; system("pause"); break;
+		}
+	}
+}
+
+Файл Bus.h
+#pragma once
+#include "Garage.h"
+
+class Bus : public Garage {
+protected:
+	int number_seats; //int
+	int number_of_passenger_seats; //int
+	string destination;
+public:
+	Bus();
+	Bus(const Bus& obj);
+	~Bus();
+
+	Bus& operator= (const Bus& other);
+
+	friend ostream& operator<<(ostream&, Bus&);
+	friend istream& operator>>(istream&, Bus&);
+	friend ofstream& operator<<(ofstream&, Bus&);
+	friend ifstream& operator>>(ifstream&, Bus&);
+};
+
+ Файл Car.h
+#pragma once
+#include "Garage.h"
+
+class Car : public Garage {
+protected:
+	int engine_capacity; //в инт
+	string colour;
+	string CIO; //кпп
+public:
+	Car();
+	Car(const Car& obj);
+	~Car();
+
+	Car& operator= (const Car& other);
+
+	friend ostream& operator<<(ostream&, Car&); // поток вывода на экран
+	friend istream& operator>>(istream&, Car&); // ввод с клавиатуры
+	friend ofstream& operator<<(ofstream&, Car&); // вывод из файла
+	friend ifstream& operator>>(ifstream&, Car&); //ввод в файл
+};
+
+ Файл Moto.h
+#pragma once
+#include "Garage.h"
+
+class Moto : public Garage {
+protected:
+	int engine_capacity; //в инт
+	int engine_power; //в инт
+	string terrain;
+public:
+	Moto();
+	Moto(const Moto& obj);
+	~Moto();
+
+	Moto& operator= (const Moto& other);
+
+	friend ostream& operator<<(ostream&, Moto&);
+	friend istream& operator>>(istream&, Moto&);
+	friend ofstream& operator<<(ofstream&, Moto&);
+	friend ifstream& operator>>(ifstream&, Moto&);
+}
+Файл main.cpp
+#include "Keeper.h"
+#include "Car.h"
+#include "Moto.h"
+#include "Bus.h"
+#include "Menu.h"
+
+int main() {
+
+	system("chcp 1251");
+	setlocale(LC_ALL, "Russian");
+	Keeper<Moto> ob1;
+	Keeper<Bus> ob2;
+	Keeper<Car> ob3;
+
+	int menu;
+	int flag = 1;
+	while (flag) {
+		system("cls");
+		cout << "What do you want to add?" << endl;
+		cout << "1 -> Moto" << endl;
+		cout << "2 -> Bus" << endl;
+		cout << "3 -> Car" << endl;
+		cout << "4 -> Exit" << endl;
+		cout << "Enter number: ";
+		cin >> menu;
+		switch (menu) {
+		case 1: Menu(ob1, "Moto.txt"); break;
+		case 2: Menu(ob2, "Bus.txt"); break;
+		case 3: Menu(ob3, "Car.txt"); break;
+		case 4: flag = 0; break;
+		default: cout << "Error" << endl; system("pause"); break;
+		}
+	}
+}
+
+Файл Bus.cpp
+#include "Bus.h"
+
+Bus::Bus() {
+	cout << " The default constructor of the class was called Bus" << endl;
+	stamp = "No data available";
+	model = "No data available";
+	number_seats = 0;
+	number_of_passenger_seats = 0;
+	destination = "No data available";
+}
+
+
+Bus::Bus(const Bus& obj) {
+	*this = obj;
+}
+
+Bus::~Bus() {
+	cout << "The class destructor was called Bus" << endl;
+}
+
+Bus& Bus::operator=(const Bus& other) {
+	this->stamp = other.stamp;
+	this->number_seats = other.number_seats;
+	this->number_of_passenger_seats = other.number_of_passenger_seats;
+	this->model = other.model;
+	this->destination = other.destination;
+
+	return *this;
+}
+
+istream& operator>>(istream& in, Bus& obj) {
+	cout << "Input bus brand: ";
+	getchar();
+	getline(in, obj.stamp);
+
+	cout << "Input information about model: ";
+	in >> obj.model;
+
+	cout << "Input information number seats: ";
+	while (!(in >> obj.number_seats))
+	{
+		if (in.eof())
+		{
+			throw "eof";
+		}
+		in.clear(); //Сбрасываем флаг ошибки, если таковая была
+		in.ignore(1000, '\n'); //Игнорируем оставшиеся в потоке данные
+		cout << "Try again: ";
+	}
+
+	cout << "Input information about number of passenger seats: ";
+	while (!(in >> obj.number_of_passenger_seats))
+	{
+		if (in.eof())
+		{
+			throw "eof";
+		}
+		in.clear(); //Сбрасываем флаг ошибки, если таковая была
+		in.ignore(1000, '\n'); //Игнорируем оставшиеся в потоке данные
+		cout << "Try again: ";
+	}
+
+	cout << "Input information about destination: ";
+	in >> obj.destination;
+
+	return in;
+}
+
+ostream& operator<<(ostream& out, Bus& obj) {
+	out << "Bus brand: " << obj.stamp << endl;
+	out << "Model of Bus: " << obj.model << endl;
+	out << "Information about number seats : " << obj.number_seats << endl;
+	out << "Information about number of passenger seats: " << obj.number_of_passenger_seats << endl;
+	out << "Information about destination: " << obj.destination << endl;
+	
+	return out;
+}
+
+ofstream& operator<<(ofstream& fout, Bus& obj)
+{
+	fout << obj.stamp << endl;
+	fout << obj.model << endl;
+
+	fout << obj.number_seats << endl;
+	fout << obj.number_of_passenger_seats << endl;
+	fout << obj.destination << endl;
+	
+	return fout;
+}
+
+ifstream& operator>>(ifstream& fin, Bus& obj)
+{
+	fin >> obj.stamp;
+	fin >> obj.model;
+	fin >> obj.number_seats;
+	fin >> obj.number_of_passenger_seats;
+	fin >> obj.destination;
+	return fin;
+}
+
+Файл Car.cpp
+#include "Car.h"
+
+Car::Car() {
+	cout << "The default constructor of the class was called Car" << endl;
+	stamp = "No data available";
+	model = "No data available";
+	engine_capacity = 0; 
+	colour = "No data available";
+	CIO = "No data available";
+
+}
+
+
+Car::Car(const Car& obj) {
+	*this = obj;
+}
+
+Car::~Car() {
+	cout << "The class destructor was called Car" << endl;
+}
+
+Car& Car::operator=(const Car& other) {
+	this->stamp = other.stamp;
+	this->model = other.model;
+	this->colour = other.colour;
+	this->engine_capacity = other.engine_capacity;
+	this->CIO = other.CIO;
+	return *this;
+}
+
+ostream& operator<<(ostream& out, Car& obj) {
+	out << "Car brand: " << obj.stamp << endl;
+	out << "Model of Car: " << obj.model << endl;
+	out << "Information about engine capacity: " << obj.engine_capacity << endl;
+	out << "Information about colour: " << obj.colour << endl;
+	out << "Information about CIO: " << obj.CIO << endl;
+	return out;
+}
+
+istream& operator>>(istream& in, Car& obj) {
+	cout << "Input car brand: ";
+	getchar();
+	getline(in, obj.stamp);
+
+	cout << "Input model of Car: ";
+	in >> obj.model;
+
+	cout << "Input information about engine capacity: ";
+	while (!(in >> obj.engine_capacity))
+	{
+		if (in.eof())
+		{
+			throw "eof";
+		}
+		in.clear(); //Сбрасываем флаг ошибки, если таковая была
+		in.ignore(1000, '\n'); //Игнорируем оставшиеся в потоке данные
+		cout << "Try again: ";
+	}
+
+	cout << "Input information about colour: ";
+	getchar();
+	getline(in, obj.colour);
+
+	cout << "Input CIO: ";
+	//getchar();
+	getline(in, obj.CIO);
+
+	return in;
+}
+
+ofstream& operator<<(ofstream& fout, Car& obj) {
+	fout << obj.stamp << endl;
+	fout << obj.model << endl;
+	fout << obj.engine_capacity << endl;
+	fout << obj.colour << endl;
+	fout << obj.CIO << endl;
+
+	return fout;
+}
+
+ifstream& operator>>(ifstream& fin, Car& obj) {
+	fin >> obj.stamp;
+	fin >> obj.model;
+	fin >> obj.engine_capacity;
+	fin >> obj.colour;
+	fin >> obj.CIO;
+	return fin;
+}
+
+
+Файл Moto.cpp
+#include "Moto.h"
+
+Moto::Moto() {
+	cout << " The default constructor of the class was called Moto" << endl;
+	stamp = "No data available";
+	model = "No data available";
+	engine_capacity = 0;
+	engine_power = 0;
+	terrain = "No data available";
+
+}
+
+
+
+Moto::Moto(const Moto& obj) {
+	*this = obj;
+}
+
+Moto::~Moto() {
+	cout << "The class destructor was called Moto" << endl;
+}
+
+Moto& Moto::operator=(const Moto& other) {
+	this->stamp = other.stamp;
+	this->model = other.model;
+	this->engine_power = other.engine_power;
+	this->engine_capacity = other.engine_capacity;
+	this->terrain = other.terrain;
+
+
+	return *this;
+}
+
+ostream& operator<<(ostream& out, Moto& obj) {
+	out << "Moto brand: " << obj.model << endl;
+	out << "Model of Moto: " << obj.stamp << endl;
+	out << "Information about engine capacity: " << obj.engine_capacity << endl;
+	out << "Information about engine power: " << obj.engine_power << endl;
+	out << "Information about terrain: " << obj.terrain << endl;
+	return out;
+}
+
+istream& operator>>(istream& in, Moto& obj) {
+	cout << "Input information about moto brand: ";
+	getchar();
+	getline(in, obj.stamp);
+
+	cout << "Input  model: ";
+	in >> obj.model;
+
+	cout << "Input information about engine capacity: ";
+	while (!(in >> obj.engine_capacity))
+	{
+		if (in.eof())
+		{
+			throw "eof";
+		}
+		in.clear(); //Сбрасываем флаг ошибки, если таковая была
+		in.ignore(1000, '\n'); //Игнорируем оставшиеся в потоке данные
+		cout << "Try again: ";
+	}
+
+	cout << "Input information about engine power: ";
+	while (!(in >> obj.engine_power))
+	{
+		if (in.eof())
+		{
+			throw "eof";
+		}
+		in.clear(); //Сбрасываем флаг ошибки, если таковая была
+		in.ignore(1000, '\n'); //Игнорируем оставшиеся в потоке данные
+		cout << "Try again: ";
+	}
+
+	cout << "Input information about terrain: ";
+	in >> obj.terrain;
+	return in;
+}
+
+ofstream& operator<<(ofstream& fout, Moto& obj)
+{
+	fout << obj.stamp << endl;
+	fout << obj.model << endl;
+	fout << obj.engine_capacity << endl;
+	fout << obj.engine_power << endl;
+	fout << obj.terrain << endl;
+	return fout;
+}
+
+ifstream& operator>>(ifstream& fin, Moto& obj)
+{
+	fin >> obj.stamp;
+	fin >> obj.model;
+	fin >> obj.engine_capacity;
+	fin >> obj.engine_power;
+	fin >> obj.terrain;
+
+	return fin;
+}
+
+
